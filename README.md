@@ -38,3 +38,7 @@ If you don't have paramiko installed or don't have a network route to your proce
 ## Using the JSON
 
 For ideas on how to convert this JSON into fully instantiated devices automatically, check out [`Extron-Frontend-API`](https://github.com/mefranklin6/Extron-Frontend-API), particularly the `PortInstantiation` class in [`src/main`](https://github.com/mefranklin6/Extron-Frontend-API/blob/main/src/main.py)
+
+### Disclaimer
+
+Not affliated with Extron
