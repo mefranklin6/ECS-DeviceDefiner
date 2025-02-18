@@ -32,7 +32,7 @@ This is the GUI tool used in [`Extron-Frontend-API`](https://github.com/mefrankl
 
 2. Fill out the fields ("Alias" is an added attribute which is just a "Friendly Name" to refer to the device).
 3. Click `Generate and Add`.  Add more devices if needed.
-4. When all devices are defined, click `Export over SFTP`.  Enter your processors IP or Hostaname and admin password.  If the file on your processor already exists, you will be prompted to overwrite / append / cancel the operation.  
+4. When all devices are defined, click `Export over SFTP`.  Enter your processors IP or Hostaname and admin password.  If the file "/ports.json" on your processor already exists, you will be prompted to overwrite / append / cancel the operation.  
 If you don't have paramiko installed or don't have a network route to your processor, you can click `Preview Export` and copy-paste from there.
 
 ## Using the JSON
