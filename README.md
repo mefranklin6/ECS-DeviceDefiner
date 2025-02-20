@@ -19,6 +19,7 @@ This is the GUI tool used in [`Extron-Frontend-API`](https://github.com/mefrankl
 - Preview pane for double checking before export or manual copy-paste.
 - Export to the processor over SFTP.  Allows for file overwrite or appending.
 - Pre-fill or add "select processor" buttons when running in an enviroment similar to `Extron-Frontend-API`
+- V1.0 fully supports SerialInterface, EthernetClientInterface and RelayInterface
 
 ** The attribute `Alias` has been added for readability.  You can extend the extronlib device classes [as seen here](https://github.com/mefranklin6/Extron-Frontend-API/blob/main/src/extronlib_extensions.py), or you can ignore this attribute.
 
