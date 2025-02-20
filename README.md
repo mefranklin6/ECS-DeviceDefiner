@@ -25,11 +25,15 @@ This is the GUI tool used in [`Extron-Frontend-API`](https://github.com/mefrankl
 
 ## Getting Started
 
-1. Run this tool on a workstation with modern Python installed.  Optional: install `paramiko` for SFTP export if you don't have it already.
+1. Run this tool on a workstation with modern Python installed.  
 
-    ```powershell
-    pip install -r requirements.txt
-    ```
+    - Optional: install `paramiko` for SFTP export if you don't have it already.
+
+        ```powershell
+        pip install -r requirements.txt
+        ```
+
+    - Optional: Place this repo in the root of your projects directory. If your project structure includes `src/hardware/hardware.py` to instantiate your ProcessorDevice's, then the processor will be pre-filled for you upon execution.
 
 2. Fill out the fields ("Alias" is an added attribute which is just a "Friendly Name" to refer to the device).
 3. Click `Generate and Add`.  Add more devices if needed.
