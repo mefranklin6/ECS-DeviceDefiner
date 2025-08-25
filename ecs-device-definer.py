@@ -13,17 +13,17 @@ Run this on a workstation, not on the processor
 
 class PortInstantiationApp:
     def __init__(self, root):
+        self.export_path = "/ports.json"  # Default: "/ports.json"
 
-        self.export_path = "/ports.json"
-        self.host_classes = ["ProcessorDevice", "eBUSDevice"]
-        self.host_options = self.find_existing_hosts()
+        self.SFTP_PORT = 22022
+        self.HOST_CLASSES = ["ProcessorDevice", "eBUSDevice"]
 
         self.json_cache = []
         self.processor_address = ""
         self.processor_password = ""
-        self.sftp_port = 22022
         self.sftp_export_available = False
 
+        self.host_options = self.find_existing_hosts()
         try:
             import paramiko
 
@@ -68,7 +68,7 @@ class PortInstantiationApp:
             line = line.strip()
             if "import" in line or line.startswith("#"):
                 continue
-            for host_class in self.host_classes:
+            for host_class in self.HOST_CLASSES:
                 if host_class in line and "(" in line and ")" in line:
                     host_name = line.split("(")[1].split(")")[0].strip('"').strip("'")
                     existing_hosts.append(host_name)
@@ -359,7 +359,7 @@ class PortInstantiationApp:
         json_data = json.dumps(self.json_cache, indent=4)
 
         hostname = self.processor_address
-        port = self.sftp_port
+        port = self.SFTP_PORT
         username = "admin"
         password = self.processor_password
         remote_file_path = self.export_path
