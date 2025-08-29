@@ -16,7 +16,8 @@ This is the GUI tool used in [`Extron-Frontend-API`](https://github.com/mefrankl
 - Pre-fills default values, as defined in the device classes.
 - Input validation
 - Intelligently 'greys out' fields that don't apply.  Ex: Username and Password only appear when EthernetClientInterface and SSH is selected.
-- Preview pane for double checking before export or manual copy-paste.
+- Auto-refreshing preview pane for double checking before export or manual copy-paste.
+- Ability to load and append existing files on processors over SFTP.
 - Export to the processor over SFTP.  Allows for file overwrite or appending.
 - Pre-fill or add "select processor" buttons when running in an enviroment similar to `Extron-Frontend-API`
 - V1.0 fully supports SerialInterface, EthernetClientInterface and RelayInterface
