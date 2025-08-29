@@ -74,6 +74,17 @@ class PortInstantiationApp:
                     existing_hosts.append(host_name)
         return existing_hosts
 
+    def add_footer_buttons(self, frame):
+        preview_button = ttk.Button(
+            frame, text="Preview Export", command=self.show_preview
+        )
+        preview_button.pack(pady=10)
+
+        export_button = ttk.Button(
+            frame, text="Export over SFTP", command=self.export_prompt
+        )
+        export_button.pack(pady=10)
+
     def create_serial_interface(self):
         struct = {
             "Alias": "",
@@ -153,16 +164,7 @@ class PortInstantiationApp:
             command=self.generate_serial_json,
         )
         generate_button.pack(pady=10)
-
-        preview_button = ttk.Button(
-            self.serial_frame, text="Preview Export", command=self.show_preview
-        )
-        preview_button.pack(pady=10)
-
-        export_button = ttk.Button(
-            self.serial_frame, text="Export over SFTP", command=self.export_prompt
-        )
-        export_button.pack(pady=10)
+        self.add_footer_buttons(self.serial_frame)
 
     def create_ethernet_interface(self):
         struct = {
@@ -209,16 +211,7 @@ class PortInstantiationApp:
             command=self.generate_ethernet_json,
         )
         generate_button.pack(pady=10)
-
-        preview_button = ttk.Button(
-            self.ethernet_frame, text="Preview Export", command=self.show_preview
-        )
-        preview_button.pack(pady=10)
-
-        export_button = ttk.Button(
-            self.ethernet_frame, text="Export over SFTP", command=self.export_prompt
-        )
-        export_button.pack(pady=10)
+        self.add_footer_buttons(self.ethernet_frame)
 
     def update_ethernet_fields(self):
         protocol = self.protocol_var.get()
@@ -269,22 +262,13 @@ class PortInstantiationApp:
             entry.pack()
             self.relay_entries[field] = entry
 
-            generate_button = ttk.Button(
-                self.relay_frame,
-                text="Generate and Add",
-                command=self.generate_relay_json,
-            )
+        generate_button = ttk.Button(
+            self.relay_frame,
+            text="Generate and Add",
+            command=self.generate_relay_json,
+        )
         generate_button.pack(pady=10)
-
-        preview_button = ttk.Button(
-            self.relay_frame, text="Preview Export", command=self.show_preview
-        )
-        preview_button.pack(pady=10)
-
-        export_button = ttk.Button(
-            self.relay_frame, text="Export over SFTP", command=self.export_prompt
-        )
-        export_button.pack(pady=10)
+        self.add_footer_buttons(self.relay_frame)
 
     def generate_serial_json(self):
         data = {field: entry.get() for field, entry in self.serial_entries.items()}
