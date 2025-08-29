@@ -10,6 +10,8 @@ Place this file in the root of your projects directory
 Run this on a workstation, not on the processor
 """
 
+__version__ = "1.1.0"
+
 
 class PortInstantiationApp:
     def __init__(self, root):
