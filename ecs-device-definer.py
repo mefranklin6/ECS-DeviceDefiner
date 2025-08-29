@@ -19,16 +19,17 @@ class PortInstantiationApp:
         self.HOST_CLASSES = ["ProcessorDevice", "eBUSDevice"]
 
         self.json_cache = []
+
         self.processor_address = ""
         self.processor_password = ""
-        self.sftp_export_available = False
+        self.sftp_available = False
 
         self.host_options = self.find_existing_hosts()
         try:
             import paramiko
 
             self.paramiko = paramiko
-            self.sftp_export_available = True
+            self.sftp_available = True
         except ImportError as e:
             print(e)
 
@@ -75,6 +76,12 @@ class PortInstantiationApp:
         return existing_hosts
 
     def add_footer_buttons(self, frame):
+        if self.sftp_available:
+            load_button = ttk.Button(
+                frame, text="Load from SFTP", command=self.load_file
+            )
+            load_button.pack(pady=10)
+
         preview_button = ttk.Button(
             frame, text="Preview Export", command=self.show_preview
         )
@@ -270,6 +277,14 @@ class PortInstantiationApp:
         generate_button.pack(pady=10)
         self.add_footer_buttons(self.relay_frame)
 
+    def update_preview_window(self):
+        if (
+            hasattr(self, "preview_window")
+            and self.preview_window
+            and self.preview_window.winfo_exists()
+        ):
+            self.refresh_preview()
+
     def generate_serial_json(self):
         data = {field: entry.get() for field, entry in self.serial_entries.items()}
         if not data["Port"].startswith("COM"):
@@ -282,6 +297,7 @@ class PortInstantiationApp:
         data["FlowControl"] = self.flowcontrol_var.get()
         data["Mode"] = self.mode_var.get()
         self.json_cache.append(data)
+        self.update_preview_window()
         self.serial_entries["Port"].delete(0, tk.END)
         self.serial_entries["Alias"].delete(0, tk.END)
 
@@ -314,6 +330,7 @@ class PortInstantiationApp:
             data.pop(pop_item)
 
         self.json_cache.append(data)
+        self.update_preview_window()
 
         self.ethernet_entries["Hostname"].delete(0, tk.END)
         self.ethernet_entries["Alias"].delete(0, tk.END)
@@ -327,17 +344,137 @@ class PortInstantiationApp:
             return
         data["Class"] = "RelayInterfaceEx"
         self.json_cache.append(data)
+        self.update_preview_window()
         self.relay_entries["Port"].delete(0, tk.END)
         self.relay_entries["Alias"].delete(0, tk.END)
 
+    def load_file(self):
+        if self.json_cache != []:
+            user_continue = messagebox.askyesno(
+                "Continue?",
+                "Loading a file will undo any previous un-exported work.  Continue?",
+            )
+            if not user_continue:
+                return
+            else:
+                self.json_cache = {}
+                self.update_preview_window()
+
+        # Prompt for processor address and admin password
+        loader_window = tk.Toplevel(self.root)
+        loader_window.title("Load Remote JSON from Processor")
+
+        info_label = ttk.Label(
+            loader_window,
+            text=f"Loading: {self.export_path}",
+        )
+        info_label.pack(pady=(10, 0))
+
+        address_label = ttk.Label(loader_window, text="Processor Address:")
+        address_label.pack(pady=10)
+        address_entry = ttk.Entry(loader_window)
+        address_entry.insert(0, self.processor_address)
+        address_entry.pack(pady=0)
+
+        password_label = ttk.Label(loader_window, text="Admin Password:")
+        password_label.pack(pady=10)
+        password_entry = ttk.Entry(loader_window, show="*")
+        password_entry.insert(0, self.processor_password)
+        password_entry.pack(pady=0)
+
+        def on_load_submit():
+            self.processor_address = address_entry.get().strip()
+            self.processor_password = password_entry.get()
+            loader_window.destroy()
+
+            hostname = self.processor_address
+            port = self.SFTP_PORT
+            username = "admin"
+            password = self.processor_password
+            remote_file_path = self.export_path
+
+            transport = None
+            try:
+                transport = self.paramiko.Transport((hostname, port))
+                transport.connect(username=username, password=password)
+                sftp = self.paramiko.SFTPClient.from_transport(transport)
+
+                # Open and read remote JSON file
+                with sftp.file(remote_file_path, "r") as remote_file:
+                    content = remote_file.read()
+                    if isinstance(content, bytes):
+                        content = content.decode("utf-8", errors="replace")
+                data = json.loads(content)
+
+                # Normalize into list for json_cache
+                if isinstance(data, list):
+                    self.json_cache = data
+                elif isinstance(data, dict):
+                    self.json_cache = [data]
+                else:
+                    raise ValueError("Unsupported JSON format (expected list or dict)")
+
+                self.show_preview()
+            except FileNotFoundError:
+                messagebox.showerror(
+                    "Not Found",
+                    f"The file '{remote_file_path}' was not found on the processor.",
+                )
+            except Exception as e:
+                messagebox.showerror("Load Failed", f"Failed to load: {e}")
+            finally:
+                try:
+                    if transport:
+                        transport.close()
+                except Exception:
+                    pass
+
+        submit_button = ttk.Button(loader_window, text="Load", command=on_load_submit)
+        loader_window.bind("<Return>", lambda event: on_load_submit())
+        submit_button.pack(pady=12)
+
     def show_preview(self):
-        preview_window = tk.Toplevel(self.root)
-        preview_window.title("JSON Cache Preview")
-        text = tk.Text(preview_window, wrap="word")
-        json_data = json.dumps(self.json_cache, indent=4)
-        text.insert("1.0", json_data)
-        text.pack(expand=True, fill="both")
-        text.config(state="disabled")
+        # Reuse existing preview window if open
+        if (
+            hasattr(self, "preview_window")
+            and self.preview_window
+            and self.preview_window.winfo_exists()
+        ):
+            self.preview_window.deiconify()
+            self.preview_window.lift()
+            self.refresh_preview()
+            return
+
+        # Create a new preview window
+        self.preview_window = tk.Toplevel(self.root)
+        self.preview_window.title("JSON Cache Preview")
+        self.preview_text = tk.Text(self.preview_window, wrap="word")
+        self.preview_text.pack(expand=True, fill="both")
+        self.preview_text.config(state="disabled")
+
+        # Clear the reference when the window is closed
+        def on_close():
+            self.preview_text = None
+            self.preview_window.destroy()
+            self.preview_window = None
+
+        self.preview_window.protocol("WM_DELETE_WINDOW", on_close)
+        self.refresh_preview()
+
+    def refresh_preview(self):
+        # Update the preview text if the window is open
+        if (
+            hasattr(self, "preview_window")
+            and self.preview_window
+            and self.preview_window.winfo_exists()
+            and hasattr(self, "preview_text")
+            and self.preview_text
+        ):
+            self.preview_text.config(state="normal")
+            self.preview_text.delete("1.0", tk.END)
+            json_data = json.dumps(self.json_cache, indent=4)
+            self.preview_text.insert("1.0", json_data)
+            self.preview_text.config(state="disabled")
 
     def export(self):
         json_data = json.dumps(self.json_cache, indent=4)
@@ -408,7 +545,7 @@ You can still copy-paste your data from the "Show Preview" button
             transport.close()
 
     def export_prompt(self):
-        if not self.sftp_export_available:
+        if not self.sftp_available:
             messagebox.showerror(
                 "No SFTP Client",
                 """Missing required library "paramiko".
